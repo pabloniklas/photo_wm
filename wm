@@ -12,6 +12,7 @@ source `dirname $0`/lib_cpu
 WM=/u02/Gimp/MarcasDeAgua/Watermark03.png
 
 SCALE=100
+TMP=${TMP:-/tmp}
 
 # Marca de procesamiento
 MP="pn"
@@ -36,19 +37,36 @@ if [ -z "$1" ]; then
     file -i * | grep image | awk -F':' '{ print $1 }' | grep -v _$MP.* | while read IMAGE;  do
 
         # Creo unidad de trabajo.
-        WORK_UNIT="$TMP/wm_$IMAGE_$$.sh"
-
-        echo "Programando unidad de trabajo: $WORK_UNIT"
+        NAME=`echo "$IMAGE" | cut -f1 -d.`
+        WORK_UNIT="$TMP/wm_${NAME}_$$.sh"
+        echo "Generando script de unidad de trabajo: $WORK_UNIT"
 
         echo '#!/bin/bash' > $WORK_UNIT
         echo >> $WORK_UNIT
         echo source `dirname $0`/wm_lib >> $WORK_UNIT
         echo >> $WORK_UNIT
+        echo WM=$WM >> $WORK_UNIT
+        echo SCALE=$SCALE >> $WORK_UNIT
+        echo DONDE=$DONDE >> $WORK_UNIT
+        echo MP=$MP >> $WORK_UNIT
+        echo X_WM=$X_WM >> $WORK_UNIT
+        echo Y_WM=$Y_WM >> $WORK_UNIT
+        echo >> $WORK_UNIT
         echo MarcaAgua $IMAGE >> $WORK_UNIT
         echo >> $WORK_UNIT
         echo exit 0 >> $WORK_UNIT
+        chmod u+x $WORK_UNIT
 
     done
+
+    echo "Ejecutando conversion en forma paralela."
+    echo
+    paralelo $TMP/wm_*_$$.sh
+
+    echo
+    echo "Borrando archivos temporales."
+    rm -f $TMP/wm_*_$$.sh
+
     exit 0
 else
     MarcaAgua $1
@@ -57,5 +75,3 @@ fi
 # Para evaluar mas adelante.
 # convert -border 11x10 -bordercolor "#FFFFFF" Flores\ macro.png Flores\ macro_borde.png
 # convert -font TerminalDosis-Medium.otf -pointsize 100 -background "#000000C0" -fill white -gravity SouthEast -size 800 -direction left-to-right label:@text.txt input.jpg +swap -composite output.jpg
-
-
