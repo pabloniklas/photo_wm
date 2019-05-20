@@ -1,12 +1,17 @@
 #!/bin/bash
-# Script para estampar marca de agua.
+#
+# Paralell watermarking script.
+#
 # By Pablo Niklas.
+# MIT License.
+#
+# Depends on lib_cpu and lib_wm files.
 #
 
-source `dirname $0`/wm_lib
+source `dirname $0`/lib_wm
 source `dirname $0`/lib_cpu
 
-# Inicializo
+# Init
 #WM=/u02/Gimp/MarcasDeAgua/Watermark01.png
 #WM=/u02/Gimp/MarcasDeAgua/Watermark02.png
 WM=/u02/Gimp/MarcasDeAgua/Watermark03.png
@@ -14,36 +19,36 @@ WM=/u02/Gimp/MarcasDeAgua/Watermark03.png
 SCALE=100
 TMP=${TMP:-/tmp}
 
-# Marca de procesamiento
+# Mark.
 MP="pn"
 
-# Posicion de la marca de agua: http://www.imagemagick.org/script/command-line-options.php#gravity
+# Watermark position http://www.imagemagick.org/script/command-line-options.php#gravity
 # NorthWest, North, NorthEast, West, Center, East, SouthWest, South, SouthEast
 DONDE=SouthEast
 
-# Resolucion de la marca de agua
+# Watermark resolution.
 X_WM=`identify -format %w $WM`
 X_WM=`echo $X_WM*$SCALE/100 | bc`
 
 Y_WM=`identify -format %h $WM`
 Y_WM=`echo $Y_WM*$SCALE/100 | bc`
 
-echo "Info de la marca de agua ($WM) ===> $X_WM x $Y_WM (Escala $SCALE%)"
+echo "Watermark info ($WM) ===> $X_WM x $Y_WM (Scale $SCALE%)"
 
-# Bucle principal
+# Main loop
 if [ -z "$1" ]; then
-    echo "AVISO: No se especificaron archivos. Se procesaran todos los que se encuentren en el directorio."
+    echo "NOTICE: No file was given, so all the files in the current directory will be processed."
 
     file -i * | grep image | awk -F':' '{ print $1 }' | grep -v _$MP.* | while read IMAGE;  do
 
-        # Creo unidad de trabajo.
+        # Creating Work Unit.
         NAME=`echo "$IMAGE" | cut -f1 -d.`
         WORK_UNIT="$TMP/wm_${NAME}_$$.sh"
-        echo "Generando script de unidad de trabajo: $WORK_UNIT"
+        echo "Generating work unit script: $WORK_UNIT"
 
         echo '#!/bin/bash' > $WORK_UNIT
         echo >> $WORK_UNIT
-        echo source `dirname $0`/wm_lib >> $WORK_UNIT
+        echo source `dirname $0`/lib_wm >> $WORK_UNIT
         echo >> $WORK_UNIT
         echo WM=$WM >> $WORK_UNIT
         echo SCALE=$SCALE >> $WORK_UNIT
@@ -59,12 +64,12 @@ if [ -z "$1" ]; then
 
     done
 
-    echo "Ejecutando conversion en forma paralela."
+    echo "Executing parallel conversion."
     echo
     paralelo $TMP/wm_*_$$.sh
 
     echo
-    echo "Borrando archivos temporales."
+    echo "Cleaning temporal files."
     rm -f $TMP/wm_*_$$.sh
 
     exit 0
@@ -72,6 +77,3 @@ else
     MarcaAgua $1
 fi
 
-# Para evaluar mas adelante.
-# convert -border 11x10 -bordercolor "#FFFFFF" Flores\ macro.png Flores\ macro_borde.png
-# convert -font TerminalDosis-Medium.otf -pointsize 100 -background "#000000C0" -fill white -gravity SouthEast -size 800 -direction left-to-right label:@text.txt input.jpg +swap -composite output.jpg
