@@ -1,127 +1,122 @@
 #!/bin/bash
 ##############################################
-# Librerias de bajo nivel
-# By Pablo Niklas - Bajo licencia GPL
+# Low Level Librarues
+# By Pablo Niklas - Under MIT License
 ##############################################
 
-# paralelo(): Administrador de procesos paralelos
+# paralelo(): Paralell process management
 # By Pablo Niklas (pablo.niklas@gmail.com)
-# Bajo Licencia GPL
+# Under MIT License
 #
-# Uso: paralelo [<lista de procesos a disparar en forma concurrente>]
-# Log de la corrida en /tmp/corrida_paralela.PID($$).<dia>.log
+# Usage: paralelo [<list of processes to be launch concurrently>]
+# Log into /tmp/corrida_paralela.PID($$).<day>.log
 #
 #
-# Historico de cambios:
-# 27/07/2006 - PSRN - Version Inicial.
-# 28/07/2006 - PSRN - Agregado de logs.
-#                     Reemplazo seq x myseq. ;)
-# 29/07/2006 - PSRN - Autodeteccion de CPUs en Linux.
-# 31/07/2006 - PSRN - Compatibilidad con Solaris y debugging.
-# 01/08/2006 - PSRN - Autodeteccion de CPUs en Solaris 2.6 y 9.
-# 05/08/2006 - PSRN - Anulacion de $DEBUG para que tome el del parent.
-# 07/08/2006 - PSRN - $PARALELO se pasa por variable del parent.
-# 27/08/2006 - PSRN - Se genera un log temporario para ver el avance en general del proceso.
-#                     Se mejoro salida.
+# ChangeLog
+# 27/07/2006 - PSRN - Initial version.
+# 28/07/2006 - PSRN - Logging.
+#                     Replacement of seq x myseq. ;)
+# 29/07/2006 - PSRN - Linux cores autodetection.
+# 31/07/2006 - PSRN - Solaris compatibily and debugging.
+# 01/08/2006 - PSRN - Cores autodetection in Solaris 2.6 y 9.
+# 05/08/2006 - PSRN - $DEBUG overriding.
+# 07/08/2006 - PSRN - $PARALELO is definining by his parent.
+# 27/08/2006 - PSRN - General log for a better output.
 #
 
 function paralelo() {
 
-# PARALELO:
-# Cantidad de procesos en paralelo.
-# Depende de el SO y/o la arquitectura. Puede ser:
-# 1) Cant. de cpus + 1 (x86)
-# 2) Cant. de cpus * 2 (x86)
-# 3) Cant. de cpus     (SPARC)
-if [ -z "$PARALELO" ]; then
-		PARALELO=$((`cat /proc/cpuinfo |grep ^proces|wc -l`*2)) # Linux
-fi
+    # PARALELO:
+    # Quantity of paralell process: Depends on the OS and the Architecture
+    # 1) Cant. of cpus + 1 (x86)
+    # 2) Cant. of cpus * 2 (x86)
+    # 3) Cant. of cpus     (SPARC)
+    if [ -z "$PARALELO" ]; then
+            PARALELO=$((`cat /proc/cpuinfo |grep ^proces|wc -l`*2)) # Linux
+    fi
 
-# DIRLOG:
-# Directorio donde se depositan los logs temporarios de cada hilo ejecutado.
-DIRLOG=/tmp
+    # DIRLOG:
+    # Directory where the temporary logs are stored.
+    DIRLOG=/tmp
 
-############################ COMIENZO DEL ALGORITMO ################################
+    ############################ BEGIN ################################
 
-echo ":::: INICIO CORRIDA (`date +'%d/%m/%Y - %H:%M:%S'`)"
-echo ":::: Se correran $# procesos en total (hasta $PARALELO en forma concurrente)."
+    echo ":::: START EXECUTION (`date +'%d/%m/%Y - %H:%M:%S'`)"
+    echo ":::: $# process will be executed ($PARALELO concurrently)."
 
-# Inicializo variables del sistema
-I=0;SEQ=""
-while [ $I -le $(($PARALELO-1)) ] ; do
-	PID[$I]=0
-	SEQ=$SEQ+"$I " # Como no tengo seq, lo genero :)
-	I=$(($I+1))
-done
-SEQ=`echo $SEQ|sed 's/+//g'` # Depuro los "+"
+    # Init of system variables.
+    I=0 ; SEQ=""
+    while [ $I -le $(($PARALELO-1)) ] ; do
+        PID[$I]=0
+        SEQ=$SEQ+"$I " # In some OS seq is not available...
+        I=$(($I+1))
+    done
 
-TERMINO=false
-JOBLOGTMP="job.$$.`date +'%d'`"
-TAREA=0
-while [ $# != 0 ] || ! $TERMINO; do
-	A=0
-	for A in $SEQ; do
-		# Asigno procesos si tengo lugar.
-		if [ ${PID[$A]} -eq 0 ] && [ $# != 0 ]; then
-			TAREA=$(($TAREA+1))
-			echo "::: Job #$TAREA - Thread #$A - `date +'%d/%m/%Y - %H:%M:%S'` - INICIADO." >> $DIRLOG/$JOBLOGTMP.`printf %.3d $TAREA`.log
-			#echo ": COMIENZO detalle del Job." >> $DIRLOG/$JOBLOGTMP.`printf %.3d $TAREA`.log
-			#echo $1 >> $DIRLOG/$JOBLOGTMP.`printf %.3d $TAREA`.log
-			#echo ": FIN detalle del Job." >> $DIRLOG/$JOBLOGTMP.`printf %.3d $TAREA`.log
-			#echo ": COMIENZO salida del Job." >> $DIRLOG/$JOBLOGTMP.`printf %.3d $TAREA`.log
-			$1 1>> $DIRLOG/$JOBLOGTMP.`printf %.3d $TAREA`.log 2>&1 &
-			PID[$A]=$!
-			TID[$!]=$TAREA
+    SEQ=`echo $SEQ|sed 's/+//g'` # Taking out the "+"
 
-			echo "::: Job #$TAREA - Thread #$A - `date +'%d/%m/%Y - %H:%M:%S'` - INICIADO."
+    TERMINO=false
+    JOBLOGTMP="job.$$.`date +'%d'`"
+    TAREA=0
+    while [ $# != 0 ] || ! $TERMINO; do
+        A=0
+        for A in $SEQ; do
 
-			shift
-		fi
-		A=$(($A+1))
-	done
+            # Asigning processes if they are cores available.
+            if [ ${PID[$A]} -eq 0 ] && [ $# != 0 ]; then
+                TAREA=$(($TAREA+1))
+                echo "::: Job #$TAREA - Thread #$A - `date +'%d/%m/%Y - %H:%M:%S'` - STARTED." >> $DIRLOG/$JOBLOGTMP.`printf %.3d $TAREA`.log
+                $1 1>> $DIRLOG/$JOBLOGTMP.`printf %.3d $TAREA`.log 2>&1 &
+                PID[$A]=$!
+                TID[$!]=$TAREA
 
-	# Ciclo de control de finalizacion de cada hilo.
-	TERMINO=true
-	A=0
-	for A in $SEQ; do
+                echo "::: Job #$TAREA - Thread #$A - `date +'%d/%m/%Y - %H:%M:%S'` - STARTED."
 
-		# Los distintos *nix, manejan los procesos a su manera. :)
-		FINALIZO=false
-		if [ "`uname -s`" = "SunOS" ] && [ ${PID[$A]} -gt 0 ]; then
-			[ -z "`ps -p ${PID[$A]}|grep -v "   PID TTY      TIME CMD"`" ] && FINALIZO=true
-		fi
+                shift
+            fi
 
-		if [ "`uname -s`" = "Linux" ] && [ ${PID[$A]} -gt 0 ]; then
-			[ -z "`ps --no-heading --pid ${PID[$A]}`" ] && FINALIZO=true
-		fi
+            A=$(($A+1))
+        done
 
-		if $FINALIZO ; then
-			#echo ": FIN salida del Job." >> $DIRLOG/$JOBLOGTMP.`printf %.3d ${TID[${PID[$A]}]}`.log
-			echo "::: Job #${TID[${PID[$A]}]} - Thread #$A - `date +'%d/%m/%Y - %H:%M:%S'` - FINALIZADO." >> $DIRLOG/$JOBLOGTMP.`printf %.3d ${TID[${PID[$A]}]}`.log
-			echo >> $DIRLOG/$JOBLOGTMP.`printf %.3d ${TID[${PID[$A]}]}`.log
-			echo "::: Job #${TID[${PID[$A]}]} - Thread #$A - `date +'%d/%m/%Y - %H:%M:%S'` - FINALIZADO."
- 			#cat $DIRLOG/$JOBLOGTMP.`printf %.3d ${TID[${PID[$A]}]}`.log
-			echo >> $DIRLOG/$JOBLOGTMP.`printf %.3d ${TID[${PID[$A]}]}`.log
-			PID[$A]=0
-		fi
+        # Ending control loop of each thread.
+        TERMINO=true
+        A=0
+        for A in $SEQ; do
 
-		# Salgo del ciclo principal si todas las tareas fueron hechas.
-		if [ ${PID[$A]} -gt 0 ]; then
-			TERMINO=false
-			A=$(($PARALELO-1))
-		fi
+            # Each *nix manage process in a different way. :)
+            FINALIZO=false
+            if [ "`uname -s`" = "SunOS" ] && [ ${PID[$A]} -gt 0 ]; then
+                [ -z "`ps -p ${PID[$A]}|grep -v "   PID TTY      TIME CMD"`" ] && FINALIZO=true
+            fi
 
-		A=$(($A+1))
+            if [ "`uname -s`" = "Linux" ] && [ ${PID[$A]} -gt 0 ]; then
+                [ -z "`ps --no-heading --pid ${PID[$A]}`" ] && FINALIZO=true
+            fi
 
-	done
-done
+            if $FINALIZO ; then
+                echo "::: Job #${TID[${PID[$A]}]} - Thread #$A - `date +'%d/%m/%Y - %H:%M:%S'` - ENDED." >> $DIRLOG/$JOBLOGTMP.`printf %.3d ${TID[${PID[$A]}]}`.log
+                echo >> $DIRLOG/$JOBLOGTMP.`printf %.3d ${TID[${PID[$A]}]}`.log
+                echo "::: Job #${TID[${PID[$A]}]} - Thread #$A - `date +'%d/%m/%Y - %H:%M:%S'` - ENDED."
+                echo >> $DIRLOG/$JOBLOGTMP.`printf %.3d ${TID[${PID[$A]}]}`.log
+                PID[$A]=0
+            fi
 
-echo ":::: FIN CORRIDA (`date +'%d/%m/%Y - %H:%M:%S'`)"
+            # Exit the main loop if all the thread has ended.
+            if [ ${PID[$A]} -gt 0 ]; then
+                TERMINO=false
+                A=$(($PARALELO-1))
+            fi
 
-############################### FIN ALGORTIMO ################################
+            A=$(($A+1))
 
-# Mergeo los archivos temporales en un solo log para toda la corrida
-cat $DIRLOG/$JOBLOGTMP* >> $DIRLOG/corrida_paralela.$$.`date +'%d'`.log
-rm -f $DIRLOG/$JOBLOGTMP*
+        done
+    done
+
+    echo ":::: END EXECUTION (`date +'%d/%m/%Y - %H:%M:%S'`)"
+
+    ############################### FIN ALGORTIMO ################################
+
+    # Merging all the logs files in one, for all the executions.
+    cat $DIRLOG/$JOBLOGTMP* >> $DIRLOG/corrida_paralela.$$.`date +'%d'`.log
+    rm -f $DIRLOG/$JOBLOGTMP*
 
 }
