@@ -1,4 +1,5 @@
 # Photography utils
+<img src=https://img.shields.io/github/license/pabloniklas/photography> <img src=https://img.shields.io/github/languages/top/pabloniklas/photography>
 
 ## Introduction
 
