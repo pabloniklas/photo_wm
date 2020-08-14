@@ -12,19 +12,16 @@ source `dirname $0`/lib_wm
 source `dirname $0`/lib_cpu
 
 # Init
-#WM=/u02/Gimp/MarcasDeAgua/Watermark01.png
-#WM=/u02/Gimp/MarcasDeAgua/Watermark02.png
-WM=/u02/Gimp/MarcasDeAgua/Watermark03.png
+WM=/Users/ttys9/Pictures/Gimp/MarcasDeAgua/Watermark03.png
 
 SCALE=100
-TMP=${TMP:-/tmp}
 
 # Mark.
 MP="pn"
 
 # Watermark position http://www.imagemagick.org/script/command-line-options.php#gravity
 # NorthWest, North, NorthEast, West, Center, East, SouthWest, South, SouthEast
-DONDE=SouthEast
+WHERE=SouthEast
 
 # Watermark resolution.
 X_WM=`identify -format %w $WM`
@@ -34,10 +31,15 @@ Y_WM=`identify -format %h $WM`
 Y_WM=`echo $Y_WM*$SCALE/100 | bc`
 
 echo "Watermark info ($WM) ===> $X_WM x $Y_WM (Scale $SCALE%)"
+TMP=${TMP:-/tmp}
 
 # Main loop
 if [ -z "$1" ]; then
-    echo "NOTICE: No file was given, so all the files in the current directory will be processed."
+    echo "NOTICE: No filename was given, so all the files in the current directory will be processed."
+
+    if [ -z file -i * | grep image | awk -F':' '{ print $1 }' | grep -v _$MP.* ]; then
+        echo "ERROR: The are no suitable files to process."
+    fi
 
     file -i * | grep image | awk -F':' '{ print $1 }' | grep -v _$MP.* | while read IMAGE;  do
 
@@ -52,7 +54,7 @@ if [ -z "$1" ]; then
         echo >> $WORK_UNIT
         echo WM=$WM >> $WORK_UNIT
         echo SCALE=$SCALE >> $WORK_UNIT
-        echo DONDE=$DONDE >> $WORK_UNIT
+        echo WHERE=$WHERE >> $WORK_UNIT
         echo MP=$MP >> $WORK_UNIT
         echo X_WM=$X_WM >> $WORK_UNIT
         echo Y_WM=$Y_WM >> $WORK_UNIT

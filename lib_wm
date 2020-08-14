@@ -69,7 +69,7 @@ function MarcaAgua {
     fi
 
     echo -n "  Reescalando (al $RAZON%)... "
-    composite -dissolve 90% -gravity $DONDE -quality 100 -colorspace $COLORSPACE \( $WM -resize $RAZON% \) \
+    composite -dissolve 90% -gravity $WHERE -quality 100 -colorspace $COLORSPACE \( $WM -resize $RAZON% \) \
     	"/tmp/$IMAGE.$$.1.$EXT" "/tmp/$IMAGE.$$.2.$EXT"
     RC=$?; echo "RC=$RC"
     if [ $RC -ne 0 ]; then
