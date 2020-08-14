@@ -39,6 +39,7 @@ if [ -z "$1" ]; then
 
     if [ -z file -i * | grep image | awk -F':' '{ print $1 }' | grep -v _$MP.* ]; then
         echo "ERROR: The are no suitable files to process."
+        exit 1
     fi
 
     file -i * | grep image | awk -F':' '{ print $1 }' | grep -v _$MP.* | while read IMAGE;  do
