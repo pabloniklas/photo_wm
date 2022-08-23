@@ -6,7 +6,7 @@
 function Reducir {
 
     # Ojo que no pasa la informacion EXIF, hay que reescribirla.
-    exit -1
+    exit 1
 
     echo -n "  Reduciendo a resolucion HD..."
     X_IMAGE=`identify -format %w "$1"`
@@ -36,6 +36,8 @@ function TransferirEXIF {
 function MarcaAgua {
 
     COLORSPACE="sRGB"
+    OFFSET_X=20
+    OFFSET_Y=20
 
     IMAGE="$1"
     echo "Procesando imagen $IMAGE:"
@@ -50,7 +52,7 @@ function MarcaAgua {
     Y_IMAGE=`identify -format %h "$IMAGE"`
 
     echo "  Resolucion: $X_IMAGE x $Y_IMAGE"
-    echo -n "  Generando banda de marca de agua..."
+    echo -n "  Generando marca de agua..."
   	#convert -size ${X_IMAGE}x${Y_IMAGE} xc:transparent -colorspace $COLORSPACE -fill '#0008' \
   	#	-draw "rectangle 0,$Y_IMAGE $X_IMAGE,$(($Y_IMAGE-$Y_WM-5))" "/tmp/$IMAGE.$$.1.$EXT"
     convert -size ${X_IMAGE}x${Y_IMAGE} xc:transparent -colorspace $COLORSPACE  -fill '#0000' \
@@ -69,15 +71,15 @@ function MarcaAgua {
     fi
 
     echo -n "  Reescalando (al $RAZON%)... "
-    composite -dissolve 90% -gravity $WHERE -quality 100 -colorspace $COLORSPACE \( $WM -resize $RAZON% \) \
+    composite -dissolve 100% -gravity $WHERE -quality 100 -colorspace $COLORSPACE \( $WM -resize $RAZON% \) \
     	"/tmp/$IMAGE.$$.1.$EXT" "/tmp/$IMAGE.$$.2.$EXT"
     RC=$?; echo "RC=$RC"
     if [ $RC -ne 0 ]; then
         exit $RC
     fi
     echo -n "  Estampando marca de agua..."
-    composite -gravity center -colorspace $COLORSPACE -quality 100 "/tmp/$IMAGE.$$.2.$EXT" \
-    	"$IMAGE" "${NAME}_$MP.${EXT}"
+    composite -gravity center -colorspace $COLORSPACE -geometry -$OFFSET_X-$OFFSET_Y \
+      -quality 100 "/tmp/$IMAGE.$$.2.$EXT" "$IMAGE" "${NAME}_$MP.${EXT}"
     RC=$?; echo "RC=$RC"
     if [ $RC -ne 0 ]; then
         exit $RC
@@ -96,4 +98,3 @@ function MarcaAgua {
 
     rm -f "/tmp/$IMAGE.$$.2.$EXT" "/tmp/$IMAGE.$$.1.$EXT" "${NAME}_$MP.${EXT}"
 }
-
