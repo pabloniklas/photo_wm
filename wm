@@ -8,11 +8,16 @@
 # Depends on lib_cpu and lib_wm files.
 #
 
-source `dirname $0`/lib_wm
-source `dirname $0`/lib_cpu
+source $(dirname $0)/lib_wm
+source $(dirname $0)/lib_cpu
 
 # Init
 WM=/Users/ttys9/Pictures/Gimp/MarcasDeAgua/Watermark03.png
+
+if [ ! -f $WM ]; then
+    echo "Watermark file not found."
+    exit 1
+fi
 
 SCALE=100
 
@@ -24,11 +29,11 @@ MP="pn"
 WHERE=SouthEast
 
 # Watermark resolution.
-X_WM=`identify -format %w $WM`
-X_WM=`echo $X_WM*$SCALE/100 | bc`
+X_WM=$(identify -format %w $WM)
+X_WM=$(echo $X_WM*$SCALE/100 | bc)
 
-Y_WM=`identify -format %h $WM`
-Y_WM=`echo $Y_WM*$SCALE/100 | bc`
+Y_WM=$(identify -format %h $WM)
+Y_WM=$(echo $Y_WM*$SCALE/100 | bc)
 
 echo "Watermark info ($WM) ===> $X_WM x $Y_WM (Scale $SCALE%)"
 TMP=${TMP:-/tmp}
@@ -37,32 +42,36 @@ TMP=${TMP:-/tmp}
 if [ -z "$1" ]; then
     echo "NOTICE: No filename was given, so all the files in the current directory will be processed."
 
-    if [ -z file -i * | grep image | awk -F':' '{ print $1 }' | grep -v _$MP.* ]; then
+    NUM=$(file * | grep image | awk -F':' '{ print $1 }' | grep -v _$MP.* | wc -l)
+
+    if [ $NUM -eq 0 ]; then
         echo "ERROR: The are no suitable files to process."
         exit 1
+    else
+        echo "There are $NUM files to process."
     fi
 
-    file -i * | grep image | awk -F':' '{ print $1 }' | grep -v _$MP.* | while read IMAGE;  do
+    file * | grep image | awk -F':' '{ print $1 }' | grep -v _$MP.* | while read IMAGE; do
 
         # Creating Work Unit.
-        NAME=`echo "$IMAGE" | cut -f1 -d.`
+        NAME=$(echo "$IMAGE" | cut -f1 -d.)
         WORK_UNIT="$TMP/wm_${NAME}_$$.sh"
         echo "Generating work unit script: $WORK_UNIT"
 
-        echo '#!/bin/bash' > $WORK_UNIT
-        echo >> $WORK_UNIT
-        echo source `dirname $0`/lib_wm >> $WORK_UNIT
-        echo >> $WORK_UNIT
-        echo WM=$WM >> $WORK_UNIT
-        echo SCALE=$SCALE >> $WORK_UNIT
-        echo WHERE=$WHERE >> $WORK_UNIT
-        echo MP=$MP >> $WORK_UNIT
-        echo X_WM=$X_WM >> $WORK_UNIT
-        echo Y_WM=$Y_WM >> $WORK_UNIT
-        echo >> $WORK_UNIT
-        echo MarcaAgua $IMAGE >> $WORK_UNIT
-        echo >> $WORK_UNIT
-        echo exit 0 >> $WORK_UNIT
+        echo '#!/bin/bash' >$WORK_UNIT
+        echo >>$WORK_UNIT
+        echo source $(dirname $0)/lib_wm >>$WORK_UNIT
+        echo >>$WORK_UNIT
+        echo WM=$WM >>$WORK_UNIT
+        echo SCALE=$SCALE >>$WORK_UNIT
+        echo WHERE=$WHERE >>$WORK_UNIT
+        echo MP=$MP >>$WORK_UNIT
+        echo X_WM=$X_WM >>$WORK_UNIT
+        echo Y_WM=$Y_WM >>$WORK_UNIT
+        echo >>$WORK_UNIT
+        echo MarcaAgua $IMAGE >>$WORK_UNIT
+        echo >>$WORK_UNIT
+        echo exit 0 >>$WORK_UNIT
         chmod u+x $WORK_UNIT
 
     done
@@ -79,4 +88,3 @@ if [ -z "$1" ]; then
 else
     MarcaAgua $1
 fi
-
