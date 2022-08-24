@@ -57,12 +57,12 @@ function paralelo() {
     # DIRLOG:
     # Directorio donde se depositan los logs temporarios de cada hilo ejecutado.
     DIRLOG="./"
-    LOGCPU=$DIRLOG/control_corrida.$$.$(date +'%d').log
+    LOGCPU=$DIRLOG/execution_master_log.$$.$(date +'%d').log
 
     ############################ COMIENZO DEL ALGORITMO ################################
 
-    echo ":::: INICIO CORRIDA ($(date +'%d/%m/%Y - %H:%M:%S'))" >>$LOGCPU
-    echo ":::: Se correran $# procesos en total ($PARALELO en forma concurrente)." >>$LOGCPU
+    echo ":::: BEGIN EXECUTION ($(date +'%d/%m/%Y - %H:%M:%S'))" >>$LOGCPU
+    echo ":::: $# process will be executed ($PARALELO concurrently)." >>$LOGCPU
 
     # Inicializo variables del sistema
     I=0
@@ -83,12 +83,12 @@ function paralelo() {
             # Asigno procesos si tengo lugar.
             if [ ${PID[$A]} -eq 0 ] && [ $# != 0 ]; then
                 TAREA=$(($TAREA + 1))
-                echo "::: Job #$TAREA - Thread #$A - $(date +'%d/%m/%Y - %H:%M:%S') - INICIADO." >>$DIRLOG/$JOBLOGTMP.$(printf %.3d $TAREA).log
+                echo "::: Job #$TAREA - Thread #$A - $(date +'%d/%m/%Y - %H:%M:%S') - STARTED." >>$DIRLOG/$JOBLOGTMP.$(printf %.3d $TAREA).log
                 $1 1>>$DIRLOG/$JOBLOGTMP.$(printf %.3d $TAREA).log 2>&1 &
                 PID[$A]=$!
                 TID[$!]=$TAREA
 
-                echo "::: Job #$TAREA - Thread #$A - $(date +'%d/%m/%Y - %H:%M:%S') - INICIADO." >>$LOGCPU
+                echo "::: Job #$TAREA - Thread #$A - $(date +'%d/%m/%Y - %H:%M:%S') - STARTED." >>$LOGCPU
 
                 shift
             fi
@@ -129,9 +129,9 @@ function paralelo() {
 
             if $FINALIZO; then
                 #echo ": FIN salida del Job." >> $DIRLOG/$JOBLOGTMP.`printf %.3d ${TID[${PID[$A]}]}`.log
-                echo "::: Job #${TID[${PID[$A]}]} - Thread #$A - $(date +'%d/%m/%Y - %H:%M:%S') - FINALIZADO." >>$DIRLOG/$JOBLOGTMP.$(printf %.3d ${TID[${PID[$A]}]}).log
+                echo "::: Job #${TID[${PID[$A]}]} - Thread #$A - $(date +'%d/%m/%Y - %H:%M:%S') - ENDED." >>$DIRLOG/$JOBLOGTMP.$(printf %.3d ${TID[${PID[$A]}]}).log
                 echo >>$DIRLOG/$JOBLOGTMP.$(printf %.3d ${TID[${PID[$A]}]}).log
-                echo "::: Job #${TID[${PID[$A]}]} - Thread #$A - $(date +'%d/%m/%Y - %H:%M:%S') - FINALIZADO." >>$LOGCPU
+                echo "::: Job #${TID[${PID[$A]}]} - Thread #$A - $(date +'%d/%m/%Y - %H:%M:%S') - ENDED." >>$LOGCPU
                 cat $DIRLOG/$JOBLOGTMP.$(printf %.3d ${TID[${PID[$A]}]}).log
                 echo >>$DIRLOG/$JOBLOGTMP.$(printf %.3d ${TID[${PID[$A]}]}).log
                 PID[$A]=0
@@ -148,7 +148,7 @@ function paralelo() {
         done
     done
 
-    echo ":::: FIN CORRIDA ($(date +'%d/%m/%Y - %H:%M:%S'))" >>$LOGCPU
+    echo ":::: END EXECUTION ($(date +'%d/%m/%Y - %H:%M:%S'))" >>$LOGCPU
 
     ############################### FIN ALGORTIMO ################################
 
