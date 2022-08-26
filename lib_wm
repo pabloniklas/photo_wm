@@ -4,7 +4,7 @@
 
 function reduce {
 
-    # Ojo que no pasa la informacion EXIF, hay que reescribirla.
+    # TODO: Ojo que no pasa la informacion EXIF, hay que reescribirla.
     exit 1
 
     echo -n "  Reducing to HD resolution..."
@@ -28,7 +28,7 @@ function reduce {
 
 function exif_transfer {
 
-    # Transferir los EXIF - http://ninedegreesbelow.com/photography/exiftool-commands.html
+    # Transfering the EXIF - http://ninedegreesbelow.com/photography/exiftool-commands.html
     echo -n "  Transfering EXIF information..."
     exiftool -tagsfromfile "$1" -all:all -r -overwrite_original "$2" >/dev/null 2>&1
     RC=$?
@@ -74,7 +74,8 @@ function watermark {
     fi
 
     echo -n "  Reescaling (to $RAZON%)... "
-    composite -dissolve 100% -gravity $WHERE -quality 100 -colorspace $COLORSPACE \( $WM -resize $RAZON% \) "/tmp/$IMAGE.$$.1.$EXT" "/tmp/$IMAGE.$$.2.$EXT"
+    composite -dissolve 100% -gravity $WHERE -quality 100 \
+        -colorspace $COLORSPACE \( $WM -resize $RAZON% \) "/tmp/$IMAGE.$$.1.$EXT" "/tmp/$IMAGE.$$.2.$EXT"
     RC=$?
     echo "RC=$RC"
     if [ $RC -ne 0 ]; then

@@ -28,8 +28,8 @@
 function paralell_jobs() {
 
     # PARALELO:
-    # Cantidad de procesos en paralelo.
-    # Depende de el SO y/o la arquitectura. Puede ser:
+    # Number of parallel processes
+    # It depends on the OS:
     # 1) Cant. de cpus + 1 (x86/x86_64)
     # 2) Cant. de cpus * 2 (x86/x86_64)
     # 3) Cant. de cpus     (SPARC)
@@ -55,24 +55,24 @@ function paralell_jobs() {
     fi
 
     # DIRLOG:
-    # Directorio donde se depositan los logs temporarios de cada hilo ejecutado.
+    # Directory where the temporary log files of each executed thread are located.
     DIRLOG="./"
     LOGCPU=$DIRLOG/execution_master_log.$$.$(date +'%d').log
 
-    ############################ COMIENZO DEL ALGORITMO ################################
+    ############################ ALGORITHM BEGINING ################################
 
     echo ":::: BEGIN EXECUTION ($(date +'%d/%m/%Y - %H:%M:%S'))" >>$LOGCPU
     echo ":::: $# process will be executed ($PARALELO concurrently)." >>$LOGCPU
 
-    # Inicializo variables del sistema
+    # Initializing system variables
     I=0
     SEQ=""
     while [ $I -le $(($PARALELO - 1)) ]; do
         PID[$I]=0
-        SEQ=$SEQ+"$I " # Como no tengo seq, lo genero :)
+        SEQ=$SEQ+"$I " # Sometimes there are no seq, so I've created:)
         I=$(($I + 1))
     done
-    SEQ=$(echo $SEQ | sed 's/+//g') # Depuro los "+"
+    SEQ=$(echo $SEQ | sed 's/+//g') # Deleteing the "+"
 
     TERMINO=false
     JOBLOGTMP="job.$$.$(date +'%d')"
@@ -80,7 +80,7 @@ function paralell_jobs() {
     while [ $# != 0 ] || ! $TERMINO; do
         A=0
         for A in $SEQ; do
-            # Asigno procesos si tengo lugar.
+            # Asign processes if there is availability.
             if [ ${PID[$A]} -eq 0 ] && [ $# != 0 ]; then
                 TAREA=$(($TAREA + 1))
                 echo "::: Job #$TAREA - Thread #$A - $(date +'%d/%m/%Y - %H:%M:%S') - STARTED." >>$DIRLOG/$JOBLOGTMP.$(printf %.3d $TAREA).log
@@ -95,12 +95,12 @@ function paralell_jobs() {
             A=$(($A + 1))
         done
 
-        # Ciclo de control de finalizacion de cada hilo.
+        # Control cycle for the process ending.
         TERMINO=true
         A=0
         for A in $SEQ; do
 
-            # Los distintos *nix, manejan los procesos a su manera. :)
+            # Every *nix, has it's own method to handle processes. :)
             FINALIZO=false
             case "$(uname -s)" in
 
@@ -137,7 +137,7 @@ function paralell_jobs() {
                 PID[$A]=0
             fi
 
-            # Salgo del ciclo principal si todas las tareas fueron hechas.
+            # Exit the main loop if all the jobs are done.
             if [ ${PID[$A]} -gt 0 ]; then
                 TERMINO=false
                 A=$(($PARALELO - 1))
@@ -150,9 +150,9 @@ function paralell_jobs() {
 
     echo ":::: END EXECUTION ($(date +'%d/%m/%Y - %H:%M:%S'))" >>$LOGCPU
 
-    ############################### FIN ALGORTIMO ################################
+    ############################### ALGORITHM ENDING ################################
 
-    # Mergeo los archivos temporales en un solo log para toda la corrida
+    # Mergin the temporary logs into a unique file.
     cat $DIRLOG/$JOBLOGTMP* >$DIRLOG/corrida_paralela.$$.$(date +'%d').log
     rm -f $DIRLOG/$JOBLOGTMP* $LOGCPU
 
