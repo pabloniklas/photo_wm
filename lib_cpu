@@ -25,7 +25,7 @@
 #                     Se mejoro salida.
 # 12/06/2020 - PSRN - Soporte para MacOS.
 
-function paralelo() {
+function paralell_jobs() {
 
     # PARALELO:
     # Cantidad de procesos en paralelo.

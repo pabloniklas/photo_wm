@@ -2,7 +2,7 @@
 # Bibliotecas de funciones para wm.
 # By Pablo Niklas.
 
-function Reducir {
+function reduce {
 
     # Ojo que no pasa la informacion EXIF, hay que reescribirla.
     exit 1
@@ -26,7 +26,7 @@ function Reducir {
     fi
 }
 
-function TransferirEXIF {
+function exif_transfer {
 
     # Transferir los EXIF - http://ninedegreesbelow.com/photography/exiftool-commands.html
     echo -n "  Transfering EXIF information..."
@@ -35,7 +35,7 @@ function TransferirEXIF {
     echo "RC=$RC"
 }
 
-function MarcaAgua {
+function watermark {
 
     COLORSPACE="sRGB"
     OFFSET_X=20
@@ -89,7 +89,7 @@ function MarcaAgua {
         exit $RC
     fi
 
-    TransferirEXIF "$IMAGE" "${NAME}_$MP.${EXT}"
+    exif_transfer "$IMAGE" "${NAME}_$MP.${EXT}"
 
     echo -n "  Converting to JPG..."
     convert "${NAME}_$MP.${EXT}" "${NAME}_$MP.jpg"
@@ -99,7 +99,7 @@ function MarcaAgua {
         exit $RC
     fi
 
-    TransferirEXIF "${NAME}_$MP.${EXT}" "${NAME}_$MP.jpg"
+    exif_transfer "${NAME}_$MP.${EXT}" "${NAME}_$MP.jpg"
 
     rm -f "/tmp/$IMAGE.$$.2.$EXT" "/tmp/$IMAGE.$$.1.$EXT" "${NAME}_$MP.${EXT}"
 }

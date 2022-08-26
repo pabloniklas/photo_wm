@@ -78,7 +78,7 @@ if [ -z "$1" ]; then
 
     echo "Executing parallel conversion."
     echo
-    paralelo $TMP/wm_*_$$.sh
+    paralell_jobs $TMP/wm_*_$$.sh
 
     echo
     echo "Cleaning temporal files."
@@ -86,5 +86,5 @@ if [ -z "$1" ]; then
 
     exit 0
 else
-    MarcaAgua $1
+    watermark $1
 fi
