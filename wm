@@ -69,7 +69,7 @@ if [ -z "$1" ]; then
         echo X_WM=$X_WM >>$WORK_UNIT
         echo Y_WM=$Y_WM >>$WORK_UNIT
         echo >>$WORK_UNIT
-        echo MarcaAgua $IMAGE >>$WORK_UNIT
+        echo watermark $IMAGE >>$WORK_UNIT
         echo >>$WORK_UNIT
         echo exit 0 >>$WORK_UNIT
         chmod u+x $WORK_UNIT
