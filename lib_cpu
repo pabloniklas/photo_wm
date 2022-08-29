@@ -27,7 +27,9 @@
 
 function paralell_jobs() {
 
-    # PARALELO:
+    FINAL_LOG="paralell_run_log"
+
+    #
     # Number of parallel processes
     # It depends on the OS:
     # 1) Cant. de cpus + 1 (x86/x86_64)
@@ -153,7 +155,7 @@ function paralell_jobs() {
     ############################### ALGORITHM ENDING ################################
 
     # Mergin the temporary logs into a unique file.
-    cat $DIRLOG/$JOBLOGTMP* >$DIRLOG/corrida_paralela.$$.$(date +'%d').log
+    cat $DIRLOG/$JOBLOGTMP* >$DIRLOG/${FINAL_LOG}.$$.$(date +'%d').log
     rm -f $DIRLOG/$JOBLOGTMP* $LOGCPU
 
 }
