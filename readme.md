@@ -1,6 +1,10 @@
 # Photography utils
 <img src=https://img.shields.io/github/license/pabloniklas/photography> <img src=https://img.shields.io/github/languages/top/pabloniklas/photography>
 
+## IMPORTANT ##
+THIS REPO BECAME DEPRECATED.
+Migrated to python => https://github.com/pabloniklas/wm
+
 ## Introduction
 
 The goal is to watermark in simultaneous as much as photos as cpu-core your pc has. 
